@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Razia HP SMKN 1 Malteng - Professional Architect Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { 
+                extend: { 
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+                    colors: { 
+                        brand: {
+                            50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd', 
+                            400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8'
+                        },
+                        dark: {
+                            bg: '#020617',
+                            card: '#0f172a',
+                            border: '#1e293b'
+                        }
+                    } 
+                } 
+            }
+        }
+    </script>
+    <style>
+        :root { scroll-behavior: smooth; }
+        body { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .dark body { background-color: #020617; color: #f8fafc; }
+        .light body { background-color: #f8fafc; color: #0f172a; }
+        
+        .modal-backdrop { backdrop-filter: blur(8px); transition: all 0.3s; }
+        .modal-active { display: flex !important; animation: scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        
+        @keyframes scaleUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .custom-scroll::-webkit-scrollbar { width: 5px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        
+        .btn-press:active { transform: scale(0.97); }
+        .wa-disabled { filter: grayscale(1); opacity: 0.5; cursor: not-allowed; }
+    </style>
+</head>
+<body class="min-h-screen pb-24 selection:bg-brand-500/30">
+
+    <!-- Header & Navigation -->
+    <header class="sticky top-0 z-[60] bg-white/70 dark:bg-dark-bg/80 backdrop-blur-xl border-b border-slate-200 dark:border-dark-border p-4">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-tr from-brand-600 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg shadow-brand-500/20">
+                    <span class="text-white font-bold text-xs">SMK</span>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-lg md:text-xl tracking-tight leading-tight">SMKN 1 MALTENG</h1>
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                        <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold tracking-widest uppercase">INTEGRITY SYSTEM V5.2</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <button onclick="ui.toggleTheme()" class="p-2.5 bg-slate-100 dark:bg-dark-card rounded-xl hover:ring-2 ring-brand-500/50 transition-all">
+                    <span class="dark:hidden text-lg">🌙</span><span class="hidden dark:inline text-lg">☀️</span>
+                </button>
+                <div class="hidden md:flex items-center gap-2 ml-2">
+                    <!-- Backup Trigger Button -->
+                    <button onclick="ui.showModal('dataManagementModal')" class="px-4 py-2 bg-brand-600 text-white text-[11px] font-bold rounded-xl shadow-md shadow-brand-600/20 hover:bg-brand-700 transition-all uppercase">
+                        Backup / Import
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto p-4 space-y-8 mt-4">
+        
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-3 gap-3">
+            <div class="bg-white dark:bg-dark-card p-4 rounded-3xl border border-slate-200 dark:border-dark-border shadow-sm text-center">
+                <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Total Siswa</p>
+                <h4 id="statTotal" class="text-xl font-black italic">0</h4>
+            </div>
+            <div class="bg-white dark:bg-dark-card p-4 rounded-3xl border border-slate-200 dark:border-dark-border shadow-sm text-center">
+                <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Disita</p>
+                <h4 id="statSita" class="text-xl font-black text-red-500 italic">0</h4>
+            </div>
+            <div class="bg-white dark:bg-dark-card p-4 rounded-3xl border border-slate-200 dark:border-dark-border shadow-sm text-center">
+                <p class="text-[9px] font-bold text-slate-400 uppercase mb-1">Catatan</p>
+                <h4 id="statClear" class="text-xl font-black text-emerald-500 italic">0</h4>
+            </div>
+        </div>
+        
+        <!-- Registration Form -->
+        <section class="bg-white dark:bg-dark-card p-6 md:p-8 rounded-[2.5rem] border border-slate-200 dark:border-dark-border shadow-xl">
+            <h2 class="text-lg font-bold mb-6 flex items-center gap-3 italic">
+                <span class="w-8 h-8 flex items-center justify-center bg-brand-500/10 text-brand-500 rounded-lg text-sm">✚</span> 
+                REGISTRASI PELANGGARAN
+            </h2>
+            <form id="mainForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 mb-2 ml-1 uppercase">Nama Lengkap Siswa</label>
+                        <input type="text" id="namaLengkap" required class="w-full bg-slate-50 dark:bg-dark-bg border border-slate-200 dark:border-dark-border p-4 rounded-2xl outline-none focus:border-brand-500 transition-all" placeholder="Input Nama...">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 mb-2 ml-1 uppercase">Kelas</label>
+                        <input type="text" id="kelas" required class="w-full bg-slate-50 dark:bg-dark-bg border border-slate-200 dark:border-dark-border p-4 rounded-2xl outline-none focus:border-brand-500 transition-all" placeholder="Contoh: XII RPL 2">
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 mb-2 ml-1 uppercase">Nomor HP Siswa</label>
+                        <input type="tel" id="nomorSiswa" class="w-full bg-slate-50 dark:bg-dark-bg border border-slate-200 dark:border-dark-border p-4 rounded-2xl outline-none focus:border-brand-500 transition-all" placeholder="08...">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 mb-2 ml-1 uppercase">Nomor HP Ortu (WA)</label>
+                        <input type="tel" id="nomorOrtu" class="w-full bg-slate-50 dark:bg-dark-bg border border-slate-200 dark:border-dark-border p-4 rounded-2xl outline-none focus:border-brand-500 transition-all" placeholder="Wajib untuk fitur WA">
+                    </div>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-[10px] font-bold text-slate-400 mb-2 ml-1 uppercase">Kronologi Pelanggaran</label>
+                    <textarea id="alasan" required class="w-full bg-slate-50 dark:bg-dark-bg border border-slate-200 dark:border-dark-border p-4 rounded-2xl outline-none focus:border-brand-500 transition-all min-h-[80px]" placeholder="Berikan detail kejadian..."></textarea>
+                </div>
+                <div class="md:col-span-2 pt-2">
+                    <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-extrabold py-4 rounded-2xl transition-all shadow-lg shadow-brand-500/30 btn-press uppercase tracking-wider">
+                        Simpan Data
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Search Bar -->
+        <div class="sticky top-[88px] z-40 py-2 bg-slate-50/50 dark:bg-dark-bg/50 backdrop-blur-sm">
+            <div class="relative group">
+                <input type="text" id="searchBar" class="w-full bg-white dark:bg-dark-card border border-slate-200 dark:border-dark-border pl-12 pr-4 py-4 rounded-2xl shadow-sm outline-none focus:ring-2 ring-brand-500/20 transition-all" placeholder="Cari Siswa/Kelas...">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-500 transition-colors">🔍</span>
+            </div>
+        </div>
+
+        <!-- Cards Container -->
+        <div id="studentContainer" class="grid grid-cols-1 gap-4 pb-12"></div>
+    </main>
+
+    <!-- Modal Pilihan Tindakan -->
+    <div id="hukumanModal" class="fixed inset-0 bg-slate-950/80 z-[100] hidden items-center justify-center p-4 modal-backdrop">
+        <div class="bg-white dark:bg-dark-card w-full max-w-sm rounded-[2.5rem] p-8 border border-slate-200 dark:border-dark-border shadow-2xl">
+            <div class="w-20 h-20 bg-brand-500/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <span class="text-4xl italic">⚖️</span>
+            </div>
+            <h2 class="text-xl font-black text-center mb-6">PILIH TINDAKAN</h2>
+            <div class="grid gap-3">
+                <button onclick="app.processAction('SITA')" class="w-full py-4 bg-red-600 text-white font-bold rounded-2xl hover:bg-red-700 transition-all btn-press shadow-lg shadow-red-600/20 flex flex-col items-center">
+                    <span>SITA HP</span>
+                    <span class="text-[8px] opacity-70 font-normal">BARANG BUKTI DITAHAN</span>
+                </button>
+                <button onclick="app.processAction('CATAT')" class="w-full py-4 bg-slate-600 text-white font-bold rounded-2xl hover:bg-slate-700 transition-all btn-press flex flex-col items-center">
+                    <span>CATAT SAJA</span>
+                    <span class="text-[8px] opacity-70 font-normal">TIDAK ADA PENYITAAN</span>
+                </button>
+                <button onclick="ui.closeModal('hukumanModal')" class="mt-4 py-2 text-slate-400 hover:text-slate-600 text-xs font-bold uppercase text-center">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Data Management (Backup/Import) -->
+    <div id="dataManagementModal" class="fixed inset-0 bg-slate-950/80 z-[120] hidden items-center justify-center p-4 modal-backdrop">
+        <div class="bg-white dark:bg-dark-card w-full max-w-sm rounded-[2.5rem] p-8 border border-slate-200 dark:border-dark-border shadow-2xl">
+            <div class="w-20 h-20 bg-emerald-500/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <span class="text-4xl italic">💾</span>
+            </div>
+            <h2 class="text-xl font-black text-center mb-6">DATA MANAGEMENT</h2>
+            <div class="grid gap-4">
+                <button onclick="app.exportData(); ui.closeModal('dataManagementModal')" class="w-full py-5 bg-slate-100 dark:bg-slate-800 rounded-2xl font-bold flex flex-col items-center group hover:bg-brand-600 hover:text-white transition-all btn-press">
+                    <span class="text-lg">📦</span>
+                    <span class="uppercase text-xs mt-1">Export Backup</span>
+                    <span class="text-[8px] opacity-60 font-normal">SIMPAN DATA KE FILE .JSON</span>
+                </button>
+                
+                <label class="w-full py-5 bg-slate-100 dark:bg-slate-800 rounded-2xl font-bold flex flex-col items-center cursor-pointer hover:bg-emerald-600 hover:text-white transition-all btn-press">
+                    <span class="text-lg">📥</span>
+                    <span class="uppercase text-xs mt-1">Import Data</span>
+                    <span class="text-[8px] opacity-60 font-normal">UNGGAH FILE BACKUP LAMA</span>
+                    <input type="file" id="importInput" class="hidden" accept=".json">
+                </label>
+                
+                <button onclick="ui.closeModal('dataManagementModal')" class="mt-2 py-2 text-slate-400 hover:text-slate-600 text-xs font-bold uppercase text-center">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="fixed inset-0 bg-slate-950/80 z-[110] hidden items-center justify-center p-4 modal-backdrop">
+        <div class="bg-white dark:bg-dark-card w-full max-w-lg rounded-[2.5rem] p-8 border border-slate-200 dark:border-dark-border shadow-2xl">
+            <h2 class="text-xl font-black mb-6 italic">✏️ UPDATE DATA SISWA</h2>
+            <form id="editForm" class="space-y-5">
+                <input type="hidden" id="editId">
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase mb-2 ml-1 block">Nama Lengkap</label>
+                        <input type="text" id="editNama" class="w-full bg-slate-50 dark:bg-dark-bg border border-slate-200 dark:border-dark-border p-4 rounded-xl outline-none focus:border-brand-500" placeholder="Nama">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase mb-2 ml-1 block">Kelas</label>
+                            <input type="text" id="editKelas" class="w-full bg-slate-50 dark:bg-dark-bg border border-slate-200 dark:border-dark-border p-4 rounded-xl outline-none focus:border-brand-500" placeholder="Kelas">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase mb-2 ml-1 block">HP Siswa</label>
+                            <input type="tel" id="editTelpSiswa" class="w-full bg-slate-50 dark:bg-dark-bg border border-slate-200 dark:border-dark-border p-4 rounded-xl outline-none focus:border-brand-500" placeholder="08...">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase mb-2 ml-1 block">Nomor HP Ortu (WA)</label>
+                        <input type="tel" id="editTelpOrtu" class="w-full bg-slate-50 dark:bg-dark-bg border border-slate-200 dark:border-dark-border p-4 rounded-xl outline-none focus:border-brand-500" placeholder="Isi untuk aktifkan WhatsApp">
+                    </div>
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="ui.closeModal('editModal')" class="flex-1 py-4 bg-slate-100 dark:bg-slate-700 rounded-2xl font-bold uppercase text-[10px]">Batal</button>
+                    <button type="submit" class="flex-1 py-4 bg-brand-600 rounded-2xl font-bold text-white shadow-lg btn-press uppercase text-[10px]">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-4 rounded-2xl font-bold shadow-2xl transition-all duration-500 opacity-0 translate-y-20 pointer-events-none z-[200] flex items-center gap-3 border border-white/10">
+        <span id="toastIcon"></span>
+        <span id="toastMsg"></span>
+    </div>
+
+    <!-- Mobile Nav Bar -->
+    <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-dark-card/90 backdrop-blur-md border-t border-slate-200 dark:border-dark-border p-4 flex justify-around z-50">
+        <button onclick="window.scrollTo({top:0, behavior:'smooth'})" class="p-2 flex flex-col items-center">
+            <span class="text-xl">🏠</span>
+            <span class="text-[8px] font-bold uppercase mt-1">Beranda</span>
+        </button>
+        <button onclick="ui.showModal('dataManagementModal')" class="p-2 flex flex-col items-center">
+            <span class="text-xl">💾</span>
+            <span class="text-[8px] font-bold uppercase mt-1">Data</span>
+        </button>
+        <button onclick="ui.toggleTheme()" class="p-2 flex flex-col items-center">
+            <span class="dark:hidden text-xl">🌙</span><span class="hidden dark:inline text-xl">☀️</span>
+            <span class="text-[8px] font-bold uppercase mt-1">Tema</span>
+        </button>
+    </div>
+
+    <script>
+        /**
+         * DB Handler (Single Responsibility Principle)
+         */
+        const DB = {
+            KEY: 'SMKN1_MALTENG_DB_V5.2',
+            save(data) { localStorage.setItem(this.KEY, JSON.stringify(data)); },
+            load() { 
+                const d = localStorage.getItem(this.KEY);
+                return d ? JSON.parse(d) : [];
+            }
+        };
+
+        /**
+         * UI Logic Handler
+         */
+        const ui = {
+            toggleTheme() {
+                const isDark = document.documentElement.classList.toggle('dark');
+                document.documentElement.classList.toggle('light', !isDark);
+                localStorage.theme = isDark ? 'dark' : 'light';
+            },
+            showModal(id) { document.getElementById(id).classList.add('modal-active'); },
+            closeModal(id) { document.getElementById(id).classList.remove('modal-active'); },
+            notify(msg, icon = '💡') {
+                const t = document.getElementById('toast');
+                document.getElementById('toastMsg').innerText = msg;
+                document.getElementById('toastIcon').innerText = icon;
+                t.classList.remove('opacity-0', 'translate-y-20');
+                setTimeout(() => t.classList.add('opacity-0', 'translate-y-20'), 3000);
+            },
+            updateStats(students) {
+                document.getElementById('statTotal').innerText = students.length;
+                document.getElementById('statSita').innerText = students.filter(s => s.statusSitaan === 'BELUM').length;
+                document.getElementById('statClear').innerText = students.filter(s => s.statusSitaan !== 'BELUM').length;
+            }
+        };
+
+        /**
+         * RaziaApp - Main Controller (Open/Closed Principle)
+         */
+        class RaziaApp {
+            constructor() {
+                this.students = DB.load();
+                this.tempBuffer = null;
+                this.init();
+            }
+
+            init() {
+                // Initial Theme Load
+                if (localStorage.theme === 'light') {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.classList.add('light');
+                }
+                
+                // Form Listeners
+                document.getElementById('mainForm').onsubmit = (e) => {
+                    e.preventDefault();
+                    this.tempBuffer = {
+                        nama: document.getElementById('namaLengkap').value,
+                        kelas: document.getElementById('kelas').value,
+                        telpSiswa: document.getElementById('nomorSiswa').value,
+                        telpOrtu: document.getElementById('nomorOrtu').value,
+                        alasan: document.getElementById('alasan').value,
+                        isQuick: false
+                    };
+                    ui.showModal('hukumanModal');
+                };
+
+                document.getElementById('searchBar').oninput = (e) => this.render(e.target.value);
+                document.getElementById('editForm').onsubmit = (e) => this.saveEdit(e);
+                
+                // Unified Data Management Listener
+                document.getElementById('importInput').onchange = (e) => {
+                    this.importData(e);
+                    ui.closeModal('dataManagementModal');
+                };
+
+                this.render();
+            }
+
+            processAction(type) {
+                const isSita = (type === 'SITA');
+
+                if (this.tempBuffer.isQuick) {
+                    const s = this.students.find(x => x.id === this.tempBuffer.id);
+                    if (s) {
+                        s.history.unshift({
+                            timestamp: new Date().toISOString(),
+                            reason: this.tempBuffer.alasan,
+                            mode: type
+                        });
+                        if (isSita) s.statusSitaan = 'BELUM';
+                    }
+                } else {
+                    const { nama, kelas, telpSiswa, telpOrtu, alasan } = this.tempBuffer;
+                    const existing = this.students.find(s => s.nama.toLowerCase() === nama.toLowerCase());
+
+                    if (existing) {
+                        existing.history.unshift({ timestamp: new Date().toISOString(), reason: alasan, mode: type });
+                        if (isSita) existing.statusSitaan = 'BELUM';
+                        ui.notify("Riwayat diperbarui!");
+                    } else {
+                        this.students.unshift({
+                            id: `ID-${Date.now()}`,
+                            nama, kelas, telpSiswa, telpOrtu,
+                            statusSitaan: isSita ? 'BELUM' : 'TIADA',
+                            history: [{ timestamp: new Date().toISOString(), reason: alasan, mode: type }]
+                        });
+                        ui.notify("Siswa terdaftar!", '✅');
+                    }
+                }
+
+                this.commit();
+                ui.closeModal('hukumanModal');
+                document.getElementById('mainForm').reset();
+            }
+
+            commit() {
+                DB.save(this.students);
+                this.render();
+                ui.updateStats(this.students);
+            }
+
+            toggleStatus(id) {
+                const s = this.students.find(x => x.id === id);
+                if (!s) return;
+                const states = ['BELUM', 'SELESAI', 'CATATAN'];
+                let currIdx = states.indexOf(s.statusSitaan);
+                s.statusSitaan = states[(currIdx + 1) % states.length];
+                this.commit();
+            }
+
+            deleteStudent(id) {
+                if(confirm("Hapus seluruh data siswa ini?")) {
+                    this.students = this.students.filter(x => x.id !== id);
+                    this.commit();
+                }
+            }
+
+            exportData() {
+                try {
+                    const blob = new Blob([JSON.stringify(this.students, null, 2)], {type:'application/json'});
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `DB_RAZIA_SMKN1_MALTENG_${new Date().toISOString().split('T')[0]}.json`;
+                    a.click();
+                    ui.notify("Backup Berhasil!", "📦");
+                } catch (e) {
+                    ui.notify("Gagal Export!", "❌");
+                }
+            }
+
+            importData(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    try {
+                        const d = JSON.parse(ev.target.result);
+                        if (Array.isArray(d)) { 
+                            this.students = d; 
+                            this.commit(); 
+                            ui.notify("Data Berhasil Diimpor", "📥");
+                            // Reset input file agar bisa trigger onchange lagi dengan file yang sama
+                            e.target.value = '';
+                        } else {
+                            throw new Error("Invalid structure");
+                        }
+                    } catch(err) { 
+                        alert("Format file tidak valid!"); 
+                    }
+                };
+                reader.readAsText(file);
+            }
+
+            openEditProfile(id) {
+                const s = this.students.find(x => x.id === id);
+                document.getElementById('editId').value = id;
+                document.getElementById('editNama').value = s.nama;
+                document.getElementById('editKelas').value = s.kelas;
+                document.getElementById('editTelpSiswa').value = s.telpSiswa || '';
+                document.getElementById('editTelpOrtu').value = s.telpOrtu || '';
+                ui.showModal('editModal');
+            }
+
+            saveEdit(e) {
+                e.preventDefault();
+                const id = document.getElementById('editId').value;
+                const s = this.students.find(x => x.id === id);
+                if(s) {
+                    s.nama = document.getElementById('editNama').value;
+                    s.kelas = document.getElementById('editKelas').value;
+                    s.telpSiswa = document.getElementById('editTelpSiswa').value;
+                    s.telpOrtu = document.getElementById('editTelpOrtu').value;
+                    ui.closeModal('editModal');
+                    this.commit();
+                    ui.notify("Data Disimpan!");
+                }
+            }
+
+            quickAdd(id) {
+                const r = prompt("Masukkan detail pelanggaran baru:");
+                if (!r) return;
+                this.tempBuffer = { id, alasan: r, isQuick: true };
+                ui.showModal('hukumanModal');
+            }
+
+            openWhatsApp(id) {
+                const s = this.students.find(x => x.id === id);
+                const violations = s.history.length;
+
+                if (violations < 3) {
+                    ui.notify(`WhatsApp Nonaktif (${violations}/3 Pelanggaran)`, "🔒");
+                    return;
+                }
+
+                if (!s.telpOrtu || s.telpOrtu.trim() === "") {
+                    ui.notify("Isi nomor Ortu di profil!", "⚠️");
+                    return;
+                }
+
+                const waMsg = `Pemberitahuan SMKN 1 Malteng: Anak Anda ${s.nama} (${s.kelas}) telah melakukan ${violations} kali pelanggaran penggunaan HP. Mohon segera hubungi pihak sekolah.`;
+                const formattedNum = s.telpOrtu.replace(/^0/, '62').replace(/\D/g, '');
+                window.open(`https://wa.me/${formattedNum}?text=${encodeURIComponent(waMsg)}`, '_blank');
+            }
+
+            render(filter = '') {
+                const container = document.getElementById('studentContainer');
+                container.innerHTML = '';
+                
+                const filtered = this.students.filter(s => 
+                    s.nama.toLowerCase().includes(filter.toLowerCase()) || 
+                    s.kelas.toLowerCase().includes(filter.toLowerCase())
+                );
+
+                filtered.forEach(s => {
+                    const card = document.createElement('div');
+                    const hasEnoughtViolations = s.history.length >= 3;
+
+                    card.className = `bg-white dark:bg-dark-card border-2 ${s.statusSitaan === 'BELUM' ? 'border-red-500/40' : 'border-slate-100 dark:border-dark-border'} rounded-[2.5rem] p-6 md:p-8 transition-all`;
+                    
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start mb-6">
+                            <div onclick="app.openEditProfile('${s.id}')" class="cursor-pointer group">
+                                <h3 class="text-xl font-black group-hover:text-brand-500 transition-colors">${s.nama}</h3>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">${s.kelas} • HP: ${s.telpSiswa || '-'}</p>
+                            </div>
+                            <button onclick="app.deleteStudent('${s.id}')" class="text-slate-300 hover:text-red-500 transition-colors">🗑️</button>
+                        </div>
+
+                        <div class="bg-slate-50 dark:bg-dark-bg p-5 rounded-3xl mb-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest italic">Riwayat Pelanggaran (${s.history.length})</span>
+                                ${this.getBadge(s.statusSitaan)}
+                            </div>
+                            <div class="space-y-4 max-h-40 overflow-y-auto custom-scroll pr-2">
+                                ${s.history.map(h => `
+                                    <div class="relative pl-4 border-l-2 border-slate-200 dark:border-slate-800">
+                                        <div class="absolute -left-[5px] top-1 w-2 h-2 rounded-full ${h.mode === 'SITA' ? 'bg-red-500' : 'bg-slate-400'}"></div>
+                                        <p class="text-[8px] font-bold text-slate-400 uppercase mb-1">${new Date(h.timestamp).toLocaleDateString('id-ID')} • ${h.mode}</p>
+                                        <p class="text-xs italic text-slate-500 dark:text-slate-400 leading-relaxed">"${h.reason}"</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="app.quickAdd('${s.id}')" class="py-3.5 bg-brand-600 text-white text-[9px] font-black rounded-xl btn-press uppercase">Tambah</button>
+                            <button onclick="app.toggleStatus('${s.id}')" class="py-3.5 bg-slate-100 dark:bg-dark-border text-[9px] font-black rounded-xl btn-press uppercase">Status</button>
+                            <button onclick="app.openWhatsApp('${s.id}')" 
+                                class="py-3.5 bg-emerald-600 text-white text-[9px] font-black rounded-xl btn-press uppercase flex items-center justify-center gap-1 ${!hasEnoughtViolations ? 'wa-disabled' : ''}">
+                                <span>WA</span>
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+                ui.updateStats(this.students);
+            }
+
+            getBadge(status) {
+                if (status === 'BELUM') return `<span class="bg-red-500 text-white text-[8px] px-2.5 py-1 rounded-lg font-black animate-pulse uppercase">Sitaan</span>`;
+                if (status === 'SELESAI') return `<span class="bg-emerald-500 text-white text-[8px] px-2.5 py-1 rounded-lg font-black uppercase">Clear</span>`;
+                return `<span class="bg-slate-400 text-white text-[8px] px-2.5 py-1 rounded-lg font-black uppercase italic">Recorded</span>`;
+            }
+        }
+
+        // Initialize Application
+        const app = new RaziaApp();
+    </script>
+</body>
+</html>
+
